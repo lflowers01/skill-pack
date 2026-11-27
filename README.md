@@ -74,6 +74,7 @@ Superpowers and Ponytail are also published as Claude Code plugins, which stay u
 |---|---|
 | skill-creator | Create, test and improve skills |
 | mcp-builder | Build an MCP server that connects an agent to an API |
+| reverse-engineer-anything | Take apart apps, binaries, firmware and web pages to see how they work. Needs the [REA](https://github.com/morluto/rea) MCP server installed first |
 
 ## Credits and licenses
 
@@ -83,5 +84,6 @@ These skills come from their original authors and keep their licenses:
 - Ponytail by DietrichGebert, MIT (`licenses/ponytail-MIT.txt`)
 - animate by Emil Kowalski, MIT; better-ui by Jakub Krehel, MIT (license in each folder)
 - impeccable, Apache 2.0
+- reverse-engineer-anything from [morluto/rea](https://github.com/morluto/rea), MIT
 - frontend-design, skill-creator, mcp-builder, webapp-testing and doc-coauthoring from Anthropic's public skills repo, Apache 2.0
 - interactive-math-tutor, design-hillclimb, relentless-goal and life-audit-interview were written for personal use and are shared as is
