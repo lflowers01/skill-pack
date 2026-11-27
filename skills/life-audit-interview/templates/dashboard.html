@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Life Audit</title>
+<style>
+:root{
+  --bg:#f6f5f2;--card:#fff;--ink:#1d1d1b;--muted:#6b6a65;--line:#e4e2dc;--soft:#f0efeb;
+  --good:#2f7d4f;--good-bg:#e3f1e8;--bad:#b4462f;--bad-bg:#f8e4de;
+  --acc:#3355aa;--acc-bg:#e5ebf8;--warn:#8a5f00;--warn-bg:#f8eed4;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#151513;--card:#1f1f1c;--ink:#ecebe6;--muted:#9c9a93;--line:#33322e;--soft:#272724;
+  --good:#6cc493;--good-bg:#1c3326;--bad:#ec8a72;--bad-bg:#3a221c;
+  --acc:#8fa8f0;--acc-bg:#222b44;--warn:#e2b450;--warn-bg:#382d14;}}
+:root[data-theme="dark"]{
+  --bg:#151513;--card:#1f1f1c;--ink:#ecebe6;--muted:#9c9a93;--line:#33322e;--soft:#272724;
+  --good:#6cc493;--good-bg:#1c3326;--bad:#ec8a72;--bad-bg:#3a221c;
+  --acc:#8fa8f0;--acc-bg:#222b44;--warn:#e2b450;--warn-bg:#382d14;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:980px;margin:0 auto;padding:20px 16px 80px}
+h1{margin:0;font-size:24px}
+h2{font-size:19px;margin:36px 0 4px}
+h3{font-size:16px;margin:0 0 6px}
+.sub{color:var(--muted);font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-top:12px;min-width:0}
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.chip{display:inline-block;font-size:12px;padding:2px 9px;border-radius:99px;background:var(--soft);color:var(--muted);white-space:nowrap}
+.chip.good{background:var(--good-bg);color:var(--good)}.chip.bad{background:var(--bad-bg);color:var(--bad)}
+.chip.acc{background:var(--acc-bg);color:var(--acc)}.chip.warn{background:var(--warn-bg);color:var(--warn)}
+.q{font-style:italic;color:var(--muted);font-size:14px;margin:4px 0}
+.q b{font-style:normal;font-weight:600;font-size:11px;letter-spacing:.04em;margin-right:6px}
+.anchor{margin-top:14px;padding:16px 18px;border-radius:12px;background:var(--acc-bg);font-size:17px}
+.anchor .q{font-size:17px;color:var(--ink)}
+.top{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;margin-top:14px}
+.big{font-size:40px;font-weight:700;line-height:1}
+.dots{display:flex;gap:4px;flex-wrap:wrap;margin:8px 0}
+.dot{width:26px;height:26px;border-radius:7px;border:1.5px solid var(--line);background:var(--card);cursor:pointer;font-size:10px;color:var(--muted);padding:0}
+.dot.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.dot.today{outline:2px solid var(--ink);outline-offset:1px}
+.bars{display:grid;grid-template-columns:110px 1fr 40px;gap:4px 8px;align-items:center;font-size:13px;margin:6px 0}
+.bar{height:10px;border-radius:5px;background:var(--soft);overflow:hidden}
+.bar>span{display:block;height:100%;background:var(--acc)}
+.bar.plan>span{background:var(--muted)}
+.checks{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.fix{font-size:13px;padding:8px 10px;border-radius:8px;background:var(--warn-bg);color:var(--ink);margin:6px 0}
+details{margin-top:10px}
+summary{cursor:pointer;font-weight:600;font-size:14px}
+.opts{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.opt{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 10px;font:inherit;font-size:13px;cursor:pointer}
+.opt.sel{border-color:var(--acc);background:var(--acc-bg);color:var(--acc);font-weight:600}
+textarea,input[type=text]{width:100%;font:inherit;font-size:14px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+textarea{min-height:60px;resize:vertical}
+label{font-size:13px;color:var(--muted);display:block;margin-top:8px}
+.btn{border:0;background:var(--acc);color:#fff;border-radius:8px;padding:9px 14px;font:inherit;font-weight:600;cursor:pointer}
+.btn.ghost{background:var(--soft);color:var(--ink)}
+.gap{border-left:4px solid var(--warn)}
+.gap.hours{border-left-color:var(--bad)}.gap.motive{border-left-color:var(--acc)}.gap.energy{border-left-color:var(--good)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:7px 8px;border-top:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600}
+.scroll{overflow-x:auto}
+.status{position:fixed;bottom:12px;right:12px;font-size:12px;padding:6px 10px;border-radius:8px;background:var(--card);border:1px solid var(--line);color:var(--muted)}
+.theme{float:right;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:4px 10px;cursor:pointer;font:inherit;font-size:13px}
+ul.plain{margin:6px 0;padding-left:18px}
+@media (max-width:560px){.top{grid-template-columns:1fr}.bars{grid-template-columns:80px 1fr 34px}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<div class="status" id="status">Not saved yet</div>
+
+<!--
+  DATA BLOCK. Claude replaces ONLY this JSON (see references/dashboard.md). The example below is the schema.
+  Every object with "text" + "sitting" is a verbatim quote and must pass scripts/verify_quotes.py.
+-->
+<script id="data" type="application/json">
+{
+  "example": true,
+  "meta": {"user_label": "Sam", "sitting4_date": "2026-11-19", "generated": "2026-11-19"},
+  "anchor_quote": {"text": "I want to make things that people actually use", "sitting": 2},
+  "schedule": [
+    {"date": "2026-12-03", "label": "Day 14"},
+    {"date": "2027-01-03", "label": "Month 1"},
+    {"date": "2027-02-03", "label": "Month 2"},
+    {"date": "2027-03-03", "label": "Month 3"}
+  ],
+  "checkin_questions": [
+    "How many days did you do each commitment, counting the minimum version?",
+    "Where it fell short: did the cue not happen, did you skip the action, or did it feel pointless?",
+    "For each one: keep, adjust, shrink, swap, or drop?"
+  ],
+  "accountability": {"person": "Jordan", "how": "text"},
+  "commitments": [
+    {"id": "c1", "action": "Message club members about how they track shared equipment, aiming for 10 conversations", "start": "2026-11-20", "target_per_week": 3, "prototype": true,
+     "minimum": "Send one message",
+     "if_then": {"cue": "After my 2:30 lab on Tue and Thu, before I leave the building", "action": "send one message to a club member", "obstacle": "I start rewriting the question list instead of asking anyone"},
+     "plan_check": {"cue_specific": true, "action_concrete": true, "obstacle_internal": true, "fix": ""}},
+    {"id": "c2", "action": "Phone charges in the hallway from 10 pm", "start": "2026-11-19", "target_per_week": 5, "prototype": false,
+     "minimum": "Charger lives in the hallway",
+     "if_then": {"cue": "When I feel like checking something before bed", "action": "put on the next audiobook chapter", "obstacle": "boredom"},
+     "plan_check": {"cue_specific": false, "action_concrete": true, "obstacle_internal": true, "fix": "\"When I feel like it\" is not a cue you will notice. Try: \"When I brush my teeth, I plug the phone in the hallway.\""}}
+  ],
+  "gaps": [
+    {"id": "g1", "kind": "hours", "title": "Your goals need about twice the hours you said you have",
+     "observation": "Adding up what you said each goal takes gives about 31 hours a week. You said you have about 15 free.",
+     "chart": {"available": 15, "items": [{"label": "Company", "hours": 12}, {"label": "Internship prep", "hours": 6}, {"label": "ML research", "hours": 10}, {"label": "Gym", "hours": 3}]},
+     "quotes": [{"text": "realistically maybe 15 hours a week that are actually mine", "sitting": 1}],
+     "counter": [],
+     "question": "Something has to give. Could it be that one goal is quietly already losing, and you have not said which?",
+     "lever": "Pick which goal runs at half speed until spring. Conflict section below has the options."},
+    {"id": "g2", "kind": "motive", "title": "The goal you hold most out of pressure is the one you follow through on least",
+     "observation": "ML research scored highest on pressure and lowest on follow-through (3 of 10). It is also the one you said you would not want if nobody knew.",
+     "quotes": [{"text": "my dad keeps sending me papers", "sitting": 2}, {"text": "honestly if nobody knew I would not do research", "sitting": 2}],
+     "counter": [{"text": "the one paper I read on robot grasping was actually cool", "sitting": 3}],
+     "question": "Could it be that you want part of research (the grasping problem) but not the lab job around it?",
+     "lever": "Swap the lab goal for one weekend reading the grasping paper's code. If it still pulls you, renegotiate later."},
+    {"id": "g3", "kind": "energy", "title": "What energizes you is barely in your goals",
+     "observation": "3 of your 4 absorbed moments were fixing a tool other people use. Only one goal (the company) involves that, and none of your commitments did until this round.",
+     "quotes": [{"text": "I looked up and it was 2 am and I did not care", "sitting": 2}, {"text": "I just wanted the sheet to stop being wrong", "sitting": 2}],
+     "counter": [{"text": "the dashboard thing got boring after a week", "sitting": 2}],
+     "question": "Is it fixing things for people, or the first week of something new, that pulls you?",
+     "lever": "Commitment 1 tests this. Notice whether conversation 6 feels like conversation 1."}
+  ],
+  "goals": [
+    {"name": "Start a company", "autonomous": 4, "controlled": 1, "follow_through": 6, "has_plan": true, "priority": 1},
+    {"name": "Internship", "autonomous": 2, "controlled": 3, "follow_through": 7, "has_plan": false, "priority": 2},
+    {"name": "ML research", "autonomous": 1, "controlled": 4, "follow_through": 3, "has_plan": false, "priority": 3},
+    {"name": "Run a 10K", "autonomous": 3, "controlled": 1, "follow_through": 4, "has_plan": false, "priority": 4}
+  ],
+  "synergies": [
+    {"a": "Start a company", "b": "Internship", "how": "Customer interviews are the same skill recruiters ask about", "quote": {"text": "every interview asks about a project I drove", "sitting": 3}}
+  ],
+  "conflicts": [
+    {"a": "Start a company", "b": "ML research", "resource": "Weekday evenings", "options": ["Sequence: research waits until fall", "Merge: pick a research problem the company needs", "Drop research for now"], "decided": ""}
+  ],
+  "lives": [
+    {"title": "Hardware tools founder by twenty-three", "energy_fit": 4, "motive_fit": 4, "resources": 2, "confidence": 6, "reuses": ["Start a company", "Internship"], "prototype": "10 conversations, then a paper prototype", "linked_to_now": true},
+    {"title": "Big-tech engineer, side projects nightly", "energy_fit": 2, "motive_fit": 2, "resources": 3, "confidence": 7, "reuses": ["Internship"], "prototype": "Two weeks of one evening project block", "linked_to_now": false},
+    {"title": "Teaching robotics in rural schools", "energy_fit": 3, "motive_fit": 3, "resources": 1, "confidence": 4, "reuses": [], "prototype": "Volunteer one Saturday workshop", "linked_to_now": false}
+  ],
+  "prompts": [
+    {"notice": "Which day this period went best, and what was different about it?", "understand": "What made that day easier: the time, the place, or the people?", "act": "What one thing could you copy into a harder day?"},
+    {"notice": "Which commitment did you think about most without doing it?", "understand": "What were you telling yourself in that moment?", "act": "What is the smallest version that would have counted?"},
+    {"notice": "What surprised you since the last check-in?", "understand": "Does it change any of the patterns above?", "act": "What would you adjust because of it?"}
+  ],
+  "rerate": [
+    {"text": "three hours I would never choose on purpose", "sitting": 1},
+    {"text": "I am in five things and good at none of them", "sitting": 1}
+  ],
+  "least_sure": ["Is the inventory problem big enough that anyone would pay?", "Is dropping research a decision or a retreat?"],
+  "record": {
+    "pain_points": [{"label": "Scrolling at night", "costliest": true, "quote": {"text": "three hours I would never choose on purpose", "sitting": 1}}, {"label": "Saying yes to every club", "costliest": true, "quote": {"text": "I am in five things and good at none of them", "sitting": 1}}],
+    "absorbed": [{"label": "Fixing the club inventory sheet", "quote": {"text": "I looked up and it was 2 am and I did not care", "sitting": 2}}],
+    "drained": [{"label": "Group meetings with no agenda", "quote": {"text": "an hour of everyone waiting for someone else to talk", "sitting": 2}}],
+    "premortem": [{"reason": "Ran out of time during exams", "in_control": true, "response": "Pause during exam weeks, restart the Monday after"}, {"reason": "Nobody had the problem", "in_control": false, "response": "Treat it as a result and pick the next problem from the gap log"}],
+    "decisions": [{"date": "2026-11-17", "text": "Drop the second robotics club"}]
+  }
+}
+</script>
+
+<script>
+(function(){
+var D = JSON.parse(document.getElementById('data').textContent);
+var app = document.getElementById('app');
+var statusEl = document.getElementById('status');
+var KEY = 'life-audit-state';
+var SERVED = location.protocol.indexOf('http') === 0;
+
+// ---------- tiny DOM helper: strings are always text, never HTML ----------
+function h(tag, attrs){
+  var el = document.createElement(tag);
+  for (var k in (attrs||{})) {
+    var v = attrs[k];
+    if (k.slice(0,2) === 'on') el.addEventListener(k.slice(2), v);
+    else if (k === 'style') el.style.cssText = v;
+    else if (v !== false && v != null) el.setAttribute(k, v === true ? '' : v);
+  }
+  for (var i = 2; i < arguments.length; i++) add(el, arguments[i]);
+  return el;
+}
+function add(el, c){
+  if (c == null || c === false) return;
+  if (Array.isArray(c)) return c.forEach(function(x){ add(el, x); });
+  el.appendChild(typeof c === 'object' ? c : document.createTextNode(String(c)));
+}
+function chip(t, cls){ return h('span', {'class':'chip ' + (cls||'')}, t); }
+function quote(q, tag){ return q && q.text ? h('div', {'class':'q'}, tag ? h('b', null, tag) : null, '“' + q.text + '”', h('span', {'class':'sub'}, '  sitting ' + q.sitting)) : null; }
+
+// ---------- dates ----------
+function iso(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function parse(s){ var p = s.split('-'); return new Date(+p[0], +p[1]-1, +p[2]); }
+function addDays(d, n){ var x = new Date(d); x.setDate(x.getDate()+n); return x; }
+var TODAY = new Date(); TODAY.setHours(0,0,0,0);
+function daysBetween(a, b){ return Math.round((b - a) / 864e5); }
+function nextMonday(){ var d = addDays(TODAY, 1); while (d.getDay() !== 1) d = addDays(d, 1); return d; }
+function window14(endOffset){ var out = []; for (var i = 13; i >= 0; i--) out.push(iso(addDays(TODAY, -i - endOffset))); return out; }
+
+// ---------- state: what the user records. Server first, browser storage as backup ----------
+var S = {done:{}, diag:{}, decision:{}, new_if_then:{}, replace:{}, insight:{}, insight_edit:{}, reflect:{}, rerate:{}, conflict:{}, history:[]};
+function merge(x){ if (x && typeof x === 'object') for (var k in S) if (x[k] != null) S[k] = x[k]; }
+try { merge(JSON.parse(localStorage.getItem(KEY))); } catch(e){}
+
+var saveTimer;
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){}
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(function(){
+    if (!SERVED) { statusEl.textContent = 'Saved in this browser only. Use "Copy for Claude" at the bottom.'; return; }
+    fetch('state', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(S)})
+      .then(function(r){ statusEl.textContent = r.ok ? 'Saved to life-audit/checkins ' + new Date().toLocaleTimeString() : 'Save failed: copy for Claude at the bottom'; })
+      .catch(function(){ statusEl.textContent = 'Server not running: saved in this browser only'; });
+  }, 400);
+}
+
+function start(){
+  if (!SERVED) return render();
+  fetch('state').then(function(r){ return r.ok ? r.json() : {}; }).then(function(x){ merge(x); render(); }).catch(render);
+}
+
+// ---------- computed numbers ----------
+function countIn(id, dates){ var d = S.done[id] || []; return dates.filter(function(x){ return d.indexOf(x) >= 0; }).length; }
+function cameBack(id){
+  // a done day that follows 2+ missed days, inside the last 14 days
+  var d = (S.done[id] || []).slice().sort(), w = window14(0);
+  for (var i = 1; i < d.length; i++) if (w.indexOf(d[i]) >= 0 && daysBetween(parse(d[i-1]), parse(d[i])) >= 3) return true;
+  return false;
+}
+function nextCheckin(){ return (D.schedule||[]).filter(function(c){ return parse(c.date) >= TODAY; })[0]; }
+function checkinsDone(){ return (S.history||[]).length; }
+
+// ---------- sections ----------
+function header(){
+  var nx = nextCheckin(), since = D.meta.sitting4_date ? daysBetween(parse(D.meta.sitting4_date), TODAY) : null;
+  var isCheckinDay = nx && daysBetween(TODAY, parse(nx.date)) <= 1;
+  return [
+    h('div', {'class':'row'}, h('h1', null, (D.meta.user_label ? D.meta.user_label + ': ' : '') + 'life audit'), h('button', {'class':'theme', onclick: toggleTheme}, 'Theme')),
+    h('div', {'class':'sub'}, (since != null && since >= 0 ? 'Day ' + since + ' since sitting 4' : 'Sittings in progress') + ' · updated ' + D.meta.generated + (D.example ? ' · EXAMPLE DATA' : '')),
+    D.anchor_quote ? h('div', {'class':'anchor'}, h('div', {'class':'sub'}, 'What you said matters most'), quote(D.anchor_quote)) : null,
+    h('div', {'class':'card top'},
+      nx ? h('div', null, h('div', {'class':'big'}, Math.max(0, daysBetween(TODAY, parse(nx.date)))), h('div', {'class':'sub'}, 'days to ' + nx.label), h('div', {'class':'sub'}, nx.date)) : h('div', {'class':'big'}, 'Done'),
+      h('div', null,
+        h('b', null, isCheckinDay ? 'Check-in is here. Record below, then answer these:' : 'At the next check-in you will be asked:'),
+        h('ul', {'class':'plain'}, (D.checkin_questions||[]).map(function(q){ return h('li', null, q); })),
+        D.accountability && D.accountability.person ? h('div', {'class':'sub'}, 'Your numbers go to ' + D.accountability.person + ' (message builder is under the commitments).') : null))
+  ];
+}
+
+var DIAG = [
+  {k:'cue', t:'The cue never happened or I missed it', fix:'Change the cue: pick a moment that happens every time (after a class, when you get home).'},
+  {k:'skip', t:'The cue happened, I skipped the action', fix:'Shrink the action until skipping feels silly. The worst-day version counts.'},
+  {k:'pointless', t:'I did it, but it felt pointless', fix:'If this is the second time, question the goal, not the plan. Swap or drop is a real option.'},
+  {k:'fine', t:'It went fine', fix:''}
+];
+var DECIDE = ['keep','adjust','shrink','swap','drop'];
+
+function commitment(c){
+  var cur = window14(0), prev = window14(14);
+  var nowN = countIn(c.id, cur), prevN = countIn(c.id, prev), plan = Math.round((c.target_per_week||0) * 2);
+  var max = Math.max(plan, nowN, prevN, 1);
+  var pc = c.plan_check || {};
+  var short = plan && nowN < plan / 2;
+  var started = c.start ? parse(c.start) <= TODAY : true;
+  function toggle(day){ var d = S.done[c.id] = S.done[c.id] || []; var i = d.indexOf(day); if (i >= 0) d.splice(i,1); else d.push(day); save(); render(); }
+  function pick(map, val){ map[c.id] = val; save(); render(); }
+  var diag = S.diag[c.id], dec = S.decision[c.id];
+  return h('div', {'class':'card'},
+    h('div', {'class':'row'}, h('h3', null, c.action), h('span', null, c.prototype ? chip('experiment', 'acc') : null, ' ', cameBack(c.id) ? chip('came back after a miss', 'good') : null)),
+    h('div', {'class':'sub'}, 'Started ' + c.start + ' · plan ' + (c.target_per_week||0) + ' days a week · worst-day version: ' + c.minimum),
+    h('div', {style:'margin-top:8px;font-size:14px'}, h('b', null, 'If '), c.if_then.cue, h('b', null, ', then I will '), c.if_then.action, '.'),
+    h('div', {'class':'sub'}, 'Obstacle you named: ' + c.if_then.obstacle),
+    h('div', {'class':'checks'},
+      chip(pc.cue_specific ? 'cue is a real moment' : 'cue is vague', pc.cue_specific ? 'good' : 'warn'),
+      chip(pc.action_concrete ? 'action is concrete' : 'action is vague', pc.action_concrete ? 'good' : 'warn'),
+      chip(pc.obstacle_internal ? 'obstacle is yours to handle' : 'obstacle is outside you', pc.obstacle_internal ? 'good' : 'warn')),
+    pc.fix ? h('div', {'class':'fix'}, h('b', null, 'Plan fix: '), pc.fix) : null,
+    started ? [
+      h('label', null, 'Tap the days you did it in the last 14 days (the worst-day version counts)'),
+      h('div', {'class':'dots'}, cur.map(function(day){
+        var on = (S.done[c.id]||[]).indexOf(day) >= 0;
+        return h('button', {'class':'dot' + (on ? ' on' : '') + (day === iso(TODAY) ? ' today' : ''), title: day, 'aria-pressed': on ? 'true' : 'false', onclick: function(){ toggle(day); }}, parse(day).getDate());
+      })),
+      h('div', {'class':'bars'},
+        h('span', null, 'Previous 14 days'), h('div', {'class':'bar'}, h('span', {style:'width:' + (prevN/max*100) + '%'})), h('span', null, prevN),
+        h('span', null, 'Last 14 days'), h('div', {'class':'bar'}, h('span', {style:'width:' + (nowN/max*100) + '%'})), h('span', null, nowN),
+        h('span', null, 'Plan'), h('div', {'class':'bar plan'}, h('span', {style:'width:' + (plan/max*100) + '%'})), h('span', null, plan)),
+      short ? h('div', {'class':'sub'}, 'Below half the plan. Round 2 can start Monday ' + iso(nextMonday()) + '; a clean start date helps.') : null,
+      h('details', {open: true},
+        h('summary', null, 'Check-in: what happened and what next'),
+        h('label', null, 'What got in the way?'),
+        h('div', {'class':'opts'}, DIAG.map(function(o){ return h('button', {'class':'opt' + (diag === o.k ? ' sel' : ''), onclick: function(){ pick(S.diag, o.k); }}, o.t); })),
+        diag && DIAG.filter(function(o){ return o.k === diag; })[0].fix ? h('div', {'class':'fix'}, DIAG.filter(function(o){ return o.k === diag; })[0].fix) : null,
+        h('label', null, 'Decision'),
+        h('div', {'class':'opts'}, DECIDE.map(function(o){ return h('button', {'class':'opt' + (dec === o ? ' sel' : ''), onclick: function(){ pick(S.decision, o); }}, o); })),
+        dec === 'adjust' || dec === 'shrink' ? [h('label', null, 'New if-then (or smaller version)'), textField(S.new_if_then, c.id, 'If ..., then I will ...')] : null,
+        dec === 'drop' || dec === 'swap' ? [h('label', null, dec === 'drop' ? 'What, if anything, takes its place?' : 'Swap to what?'), textField(S.replace, c.id, '')] : null)
+    ] : h('div', {'class':'sub', style:'margin-top:8px'}, 'Starts ' + c.start + '.'));
+}
+
+function textField(map, id, ph, area){
+  var el = h(area ? 'textarea' : 'input', {type: area ? null : 'text', placeholder: ph || ''});
+  el.value = map[id] || '';
+  el.addEventListener('input', function(){ map[id] = el.value; save(); });
+  return el;
+}
+
+function accountability(){
+  if (!D.accountability || !D.accountability.person) return null;
+  var lines = (D.commitments||[]).map(function(c){
+    var n = countIn(c.id, window14(0)), dec = S.decision[c.id];
+    var line = '- ' + c.action + ': ' + n + ' of the last 14 days (plan ' + Math.round(c.target_per_week*2) + ').';
+    if (dec && dec !== 'keep') line += ' Next: ' + dec + (S.new_if_then[c.id] ? ' (' + S.new_if_then[c.id] + ')' : S.replace[c.id] ? ' (' + S.replace[c.id] + ')' : '') + '.';
+    return line;
+  });
+  var nx = nextCheckin();
+  var msg = 'Check-in update. What I did, not how I feel about it:\n' + lines.join('\n') + (nx ? '\nNext check-in: ' + nx.date + '.' : '');
+  var pre = h('textarea', {style:'min-height:120px'}); pre.value = msg;
+  return h('div', {'class':'card'},
+    h('h3', null, 'Message for ' + D.accountability.person),
+    h('div', {'class':'sub'}, 'Built from what you tapped above. In studies, tracking worked noticeably better when progress was reported to someone. Edit freely, then send by ' + (D.accountability.how || 'message') + '.'),
+    pre,
+    h('div', {style:'margin-top:8px'}, h('button', {'class':'btn', onclick: function(){ copy(pre.value, this); }}, 'Copy message')));
+}
+
+function hoursChart(ch){
+  var total = ch.items.reduce(function(s, x){ return s + x.hours; }, 0), max = Math.max(total, ch.available);
+  return h('div', {style:'margin:10px 0'},
+    h('div', {'class':'bars'},
+      h('span', null, 'Goals need'), h('div', {'class':'bar'}, h('span', {style:'width:' + (total/max*100) + '%;background:var(--bad)'})), h('span', null, total + 'h'),
+      h('span', null, 'You have'), h('div', {'class':'bar plan'}, h('span', {style:'width:' + (ch.available/max*100) + '%'})), h('span', null, ch.available + 'h')),
+    h('div', {'class':'sub'}, ch.items.map(function(x){ return x.label + ' ' + x.hours + 'h'; }).join(' · ') + ' (per week, your own estimates)'));
+}
+
+function gap(g){
+  var v = S.insight[g.id];
+  function set(val){ S.insight[g.id] = val; save(); render(); }
+  return h('div', {'class':'card gap ' + (g.kind||'')},
+    h('div', {'class':'row'}, h('h3', null, g.title), v ? chip(v === 'fits' ? 'you said: fits' : v === 'partly' ? 'you said: partly' : 'you said: does not fit', v === 'fits' ? 'good' : v === 'partly' ? 'warn' : 'bad') : chip('not answered yet')),
+    h('div', {style:'font-size:14px'}, g.observation),
+    g.chart ? hoursChart(g.chart) : null,
+    (g.quotes||[]).map(function(q){ return quote(q, 'FOR'); }),
+    (g.counter||[]).map(function(q){ return quote(q, 'AGAINST'); }),
+    g.counter && !g.counter.length ? h('div', {'class':'sub'}, 'No quote found against this.') : null,
+    h('div', {style:'margin-top:8px;font-size:14px'}, h('b', null, 'Question: '), g.question),
+    h('div', {style:'font-size:14px'}, h('b', null, 'One thing you could change: '), g.lever),
+    h('div', {'class':'opts', style:'margin-top:10px'},
+      [['fits','Fits'],['partly','Partly'],['no','Does not fit']].map(function(o){ return h('button', {'class':'opt' + (v === o[0] ? ' sel' : ''), onclick: function(){ set(o[0]); }}, o[1]); })),
+    v === 'partly' || v === 'no' ? [h('label', null, v === 'partly' ? 'What is the real version?' : 'What is actually going on?'), textField(S.insight_edit, g.id, '', true)] : null);
+}
+
+function motiveMap(){
+  var G = D.goals || []; if (!G.length) return null;
+  var W = 320, P = 34, sc = function(v){ return P + v / 4 * (W - 2 * P); };
+  var svg = '<svg viewBox="0 0 ' + W + ' ' + W + '" style="width:100%;max-width:340px;height:auto" role="img" aria-label="Goals by why you hold them">';
+  svg += '<rect x="' + P + '" y="' + P + '" width="' + (W-2*P) + '" height="' + (W-2*P) + '" fill="none" stroke="var(--line)"/>';
+  svg += '<line x1="' + W/2 + '" y1="' + P + '" x2="' + W/2 + '" y2="' + (W-P) + '" stroke="var(--line)"/><line x1="' + P + '" y1="' + W/2 + '" x2="' + (W-P) + '" y2="' + W/2 + '" stroke="var(--line)"/>';
+  svg += '<text x="' + W/2 + '" y="' + (W-8) + '" text-anchor="middle" font-size="11" fill="var(--muted)">wanted for its own sake →</text>';
+  svg += '<text x="12" y="' + W/2 + '" font-size="11" fill="var(--muted)" transform="rotate(-90 12 ' + W/2 + ')" text-anchor="middle">pressure, guilt, others →</text>';
+  svg += '<text x="' + (W-P-4) + '" y="' + (P+14) + '" text-anchor="end" font-size="10" fill="var(--muted)">mixed</text>';
+  svg += '<text x="' + (P+4) + '" y="' + (P+14) + '" font-size="10" fill="var(--muted)">pressure only</text>';
+  svg += '<text x="' + (W-P-4) + '" y="' + (W-P-6) + '" text-anchor="end" font-size="10" fill="var(--muted)">yours</text>';
+  G.forEach(function(g){
+    var x = sc(g.autonomous), y = W - sc(g.controlled), r = 6 + g.follow_through * 1.2;
+    svg += '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="var(--acc)" fill-opacity="' + (g.has_plan ? .85 : .15) + '" stroke="var(--acc)" stroke-width="2"/>';
+    svg += '<text x="' + x + '" y="' + (y - r - 4) + '" text-anchor="middle" font-size="11" fill="var(--ink)">' + esc(g.name) + '</text>';
+  });
+  svg += '</svg>';
+  var box = h('div'); box.innerHTML = svg;
+  return h('div', {'class':'card'},
+    h('h3', null, 'Why you hold each goal'),
+    h('div', {'class':'sub'}, 'Bigger circle = more likely you follow through. Filled = has an if-then plan. Hollow and to the right = a goal you want with no plan yet: the cheapest win. Top left = held mostly for others: worth renegotiating.'),
+    box);
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+function goalsTogether(){
+  return h('div', {'class':'cols'},
+    h('div', {'class':'card'}, h('h3', null, 'Goals that help each other'),
+      (D.synergies||[]).length ? D.synergies.map(function(s){ return h('div', {style:'margin-top:6px'}, h('b', null, s.a + ' + ' + s.b), h('div', {style:'font-size:14px'}, s.how), quote(s.quote)); }) : h('div', {'class':'sub'}, 'None found yet.')),
+    h('div', {'class':'card'}, h('h3', null, 'Goals fighting for the same time'),
+      (D.conflicts||[]).length ? D.conflicts.map(function(c, i){
+        var key = c.a + '|' + c.b, sel = S.conflict[key] || c.decided;
+        return h('div', {style:'margin-top:6px'}, h('b', null, c.a + ' vs ' + c.b), h('div', {'class':'sub'}, 'Both need: ' + c.resource),
+          h('div', {'class':'opts'}, c.options.map(function(o){ return h('button', {'class':'opt' + (sel === o ? ' sel' : ''), onclick: function(){ S.conflict[key] = o; save(); render(); }}, o); })));
+      }) : h('div', {'class':'sub'}, 'None found.')));
+}
+
+function lives(){
+  var L = D.lives || []; if (!L.length) return null;
+  var rows = [['Energy fit','energy_fit',4],['Motive fit','motive_fit',4],['Resources','resources',4],['Confidence','confidence',10]];
+  return h('div', {'class':'card scroll'}, h('table', null,
+    h('tr', null, h('th', null, ''), L.map(function(l){ return h('th', null, l.title); })),
+    rows.map(function(r){ return h('tr', null, h('td', {'class':'sub'}, r[0]), L.map(function(l){ return h('td', null, h('div', {'class':'bar', style:'max-width:120px'}, h('span', {style:'width:' + (l[r[1]]/r[2]*100) + '%'})), h('span', {'class':'sub'}, l[r[1]] + '/' + r[2])); })); }),
+    h('tr', null, h('td', {'class':'sub'}, 'Uses current goals'), L.map(function(l){ return h('td', null, l.reuses.length ? l.reuses.join(', ') : h('span', {'class':'sub'}, 'none')); })),
+    h('tr', null, h('td', {'class':'sub'}, 'First test'), L.map(function(l){ return h('td', null, l.prototype, l.linked_to_now ? null : h('div', null, chip('nothing this week moves it', 'warn'))); }))));
+}
+
+function reflect(){
+  var P = D.prompts || []; if (!P.length) return null;
+  var idx = checkinsDone() % P.length, p = P[idx], k = 'r' + checkinsDone();
+  S.reflect[k] = S.reflect[k] || {};
+  return h('div', {'class':'card'},
+    h('h3', null, 'Three questions for this check-in'),
+    h('div', {'class':'sub'}, 'They change each check-in. Short answers are fine.'),
+    [['notice','Notice'],['understand','Understand'],['act','Act']].map(function(x){ return [h('label', null, x[1] + ': ' + p[x[0]]), textField(S.reflect[k], x[0], '', true)]; }),
+    (D.rerate||[]).length ? [h('h3', {style:'margin-top:16px'}, 'Still true?'), h('div', {'class':'sub'}, 'Things you said at the start. Rate how true they are now.'),
+      D.rerate.map(function(q, i){
+        var key = q.text, v = (S.rerate[key]||{})[k];
+        return h('div', {style:'margin-top:8px'}, quote(q), h('div', {'class':'opts'}, ['not anymore','less','same','more'].map(function(o){
+          return h('button', {'class':'opt' + (v === o ? ' sel' : ''), onclick: function(){ S.rerate[key] = S.rerate[key] || {}; S.rerate[key][k] = o; save(); render(); }}, o);
+        })));
+      })] : null);
+}
+
+function record(){
+  var R = D.record || {};
+  function list(items, fn){ return items && items.length ? h('ul', {'class':'plain'}, items.map(function(x){ return h('li', null, fn(x)); })) : h('div', {'class':'sub'}, 'Nothing recorded.'); }
+  return h('details', {'class':'card'},
+    h('summary', null, 'Full record from the sittings'),
+    h('h3', {style:'margin-top:12px'}, 'What was not working'), list(R.pain_points, function(x){ return [x.label, ' ', x.costliest ? chip('costliest', 'bad') : null, quote(x.quote)]; }),
+    h('div', {'class':'cols'},
+      h('div', null, h('h3', {style:'margin-top:12px'}, 'Absorbed'), list(R.absorbed, function(x){ return [x.label, quote(x.quote)]; })),
+      h('div', null, h('h3', {style:'margin-top:12px'}, 'Drained'), list(R.drained, function(x){ return [x.label, quote(x.quote)]; }))),
+    h('h3', {style:'margin-top:12px'}, 'Pre-mortem'), list(R.premortem, function(x){ return [x.reason, ' ', chip(x.in_control ? 'in your control' : 'outside your control', x.in_control ? 'acc' : ''), h('div', {'class':'sub'}, x.response)]; }),
+    h('h3', {style:'margin-top:12px'}, 'Decisions'), list(R.decisions, function(x){ return x.date + ': ' + x.text; }),
+    (S.history||[]).length ? [h('h3', {style:'margin-top:12px'}, 'Past check-ins'), list(S.history, function(x){ return x.date + ': ' + x.summary; })] : null);
+}
+
+function footer(){
+  return h('div', {'class':'card'},
+    h('h3', null, 'Finish this check-in'),
+    h('div', {'class':'sub'}, SERVED ? 'Everything saves as you go. Marking it done stamps today’s numbers into your history.' : 'Opened as a plain file, so nothing reaches life-audit/. Copy for Claude and paste it into the chat.'),
+    h('div', {'class':'opts', style:'margin-top:8px'},
+      h('button', {'class':'btn', onclick: function(){
+        var summary = (D.commitments||[]).map(function(c){ return c.id + ' ' + countIn(c.id, window14(0)) + '/14' + (S.decision[c.id] ? ' ' + S.decision[c.id] : ''); }).join(', ');
+        S.history.push({date: iso(TODAY), summary: summary}); save(); render();
+      }}, 'Mark check-in done'),
+      h('button', {'class':'btn ghost', onclick: function(){ copy(JSON.stringify(S, null, 1), this); }}, 'Copy for Claude')),
+    h('div', {'class':'sub', style:'margin-top:10px'}, 'Built only from your own words in life-audit/. Not an assessment. If something here is wrong, say "Does not fit" and it changes next time.'));
+}
+
+function copy(text, btn){
+  var done = function(){ var t = btn.textContent; btn.textContent = 'Copied'; setTimeout(function(){ btn.textContent = t; }, 1500); };
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
+  function fallback(){ var t = h('textarea'); t.value = text; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); done(); } catch(e){} t.remove(); }
+}
+
+function toggleTheme(){
+  var root = document.documentElement, cur = root.getAttribute('data-theme');
+  var dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  root.setAttribute('data-theme', dark ? 'light' : 'dark');
+  try { localStorage.setItem('la-theme', dark ? 'light' : 'dark'); } catch(e){}
+}
+try { var t = localStorage.getItem('la-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch(e){}
+
+// ---------- page order: anchor, this period, what it means, goals, lives, reflect, record ----------
+function section(title, sub, body){ return [h('h2', null, title), sub ? h('div', {'class':'sub'}, sub) : null, body]; }
+function render(){
+  var y = window.scrollY, focusId = document.activeElement && document.activeElement.tagName;
+  app.textContent = '';
+  add(app, header());
+  add(app, section('This period', 'Tap what you did. The comparison and the check-in questions update as you go.', [(D.commitments||[]).map(commitment), accountability()]));
+  add(app, section('What the audit found', 'Patterns across your sittings, each with the quotes for and against. These are guesses. Tell them when they are wrong.', (D.gaps||[]).map(gap)));
+  add(app, section('Your goals together', null, [motiveMap(), goalsTogether()]));
+  add(app, section('Three lives you considered', 'Same rows for each, so they compare fairly.', lives()));
+  add(app, section('Reflect', null, reflect()));
+  (D.least_sure||[]).length && add(app, section('Least sure about', null, h('div', {'class':'card'}, h('ul', {'class':'plain'}, D.least_sure.map(function(x){ return h('li', null, x); })))));
+  add(app, record());
+  add(app, footer());
+  window.scrollTo(0, y);
+}
+start();
+})();
+</script>
+</body>
+</html>

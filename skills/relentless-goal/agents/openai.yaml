@@ -1,0 +1,4 @@
+interface:
+  display_name: "Relentless Goal"
+  short_description: "Persist toward verified goals across sessions"
+  default_prompt: "Use $relentless-goal to pursue this objective through verified completion, preserving progress across sessions."
