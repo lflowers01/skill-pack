@@ -1,12 +1,12 @@
 # skill-pack
 
-A hand-picked set of agent skills for Claude Code and Codex. Each folder in `skills/` is one skill with a `SKILL.md`.
+A hand-picked set of agent skills for Claude Code, Codex, Google Antigravity and OpenCode. Each folder in `skills/` is one skill with a `SKILL.md`.
 
 ## Install
 
 ### Easiest: let your agent do it
 
-Paste this into Claude Code (or Codex):
+Paste this into Claude Code, Codex, Antigravity or OpenCode:
 
 ```
 Install the skills from https://github.com/lflowers01/skill-pack. Follow the "Instructions for agents" section in its README.
@@ -20,7 +20,9 @@ If a user asked you to install this skill pack, do this:
 2. Pick the skills folder for the agent you are running in:
    - Claude Code: `~/.claude/skills/` (Windows: `%USERPROFILE%\.claude\skills\`)
    - Codex: `~/.codex/skills/`
-   Create it if it does not exist.
+   - Google Antigravity: `~/.gemini/config/skills/` (shared by the Antigravity IDE, app and CLI; older versions read `~/.gemini/antigravity/skills/`, so if the skills don't show up, copy them there too)
+   - OpenCode: `~/.config/opencode/skills/` (Windows: `%USERPROFILE%\.config\opencode\skills\`)
+   `~` means the user's home folder (Windows: `%USERPROFILE%`). Create the folder if it does not exist. If you are not sure which agent you are, ask the user.
 3. Copy every folder inside the repo's `skills/` folder into that skills folder, so each skill ends up as `<skills folder>/<skill-name>/SKILL.md`. Copy the folders themselves, not the `skills/` folder around them.
 4. If a skill with the same name is already installed, ask the user before replacing it.
 5. Delete the temporary clone.
@@ -40,7 +42,15 @@ cp -r skill-pack/skills/* ~/.claude/skills/
 
 On Windows that folder is `C:\Users\<you>\.claude\skills`. Restart Claude Code, then type `/` to see them, or just ask for the task and the matching skill loads on its own.
 
-**Codex:** copy them into `~/.codex/skills/` instead.
+**Other agents:** same thing, different folder:
+
+| Agent | Skills folder |
+|---|---|
+| Codex | `~/.codex/skills/` |
+| Google Antigravity | `~/.gemini/config/skills/` (older versions: `~/.gemini/antigravity/skills/`) |
+| OpenCode | `~/.config/opencode/skills/` |
+
+To use the skills in just one project instead, copy them into `.agents/skills/` (Antigravity) or `.opencode/skills/` (OpenCode) inside that project. In Antigravity, open **Customizations** in the agent side panel to check they loaded. OpenCode also reads `~/.claude/skills/`, so if you already installed them for Claude Code you're done.
 
 Superpowers and Ponytail are also published as Claude Code plugins, which stay up to date on their own:
 
@@ -58,7 +68,7 @@ The skill in this pack is just the instructions. The tools it drives come from R
    ```
    npx rea-agents setup
    ```
-3. Pick your agent (Claude Code or Codex), read the plan it shows, and approve it. Setup backs up your config, connects the REA MCP server, and installs the newest version of this skill.
+3. Pick your agent (Claude Code, Codex, Antigravity, OpenCode and others are on the list), read the plan it shows, and approve it. Setup backs up your config, connects the REA MCP server, and installs the newest version of this skill.
 4. Restart the agent. Check it worked by asking: "Is REA connected? List its tools."
 5. Optional, for native apps (`.exe`, `.dll`, Mac apps, firmware): REA needs an analysis engine. It can use Ghidra (free), Hopper, IDA, or Kuna if you have one, and setup can offer to install Hopper. JavaScript, Electron and website analysis need no engine.
 
