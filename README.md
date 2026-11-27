@@ -25,7 +25,7 @@ If a user asked you to install this skill pack, do this:
 4. If a skill with the same name is already installed, ask the user before replacing it.
 5. Delete the temporary clone.
 6. Tell the user which skills were installed, and that they need to restart the agent (or start a new session) to load them.
-7. `reverse-engineer-anything` only works once the REA MCP server is installed (https://github.com/morluto/rea). Mention that, but do not install it unless the user asks.
+7. `reverse-engineer-anything` only works once the REA MCP server is installed. Mention that, but do not install it unless the user asks. If they ask, follow "Full reverse-engineer-anything setup" below.
 
 To update later, run the same steps again. The newest version is always at https://github.com/lflowers01/skill-pack.
 
@@ -48,6 +48,25 @@ Superpowers and Ponytail are also published as Claude Code plugins, which stay u
 /plugin marketplace add obra/superpowers-marketplace
 /plugin install superpowers@superpowers-marketplace
 ```
+
+### Full reverse-engineer-anything setup
+
+The skill in this pack is just the instructions. The tools it drives come from REA ([morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/)). Only download REA from those two places or the [rea-agents](https://www.npmjs.com/package/rea-agents) npm package; look-alike copies exist.
+
+1. Install [Node.js](https://nodejs.org/) (it includes npm).
+2. Open a terminal in a normal folder, **not** inside a project you plan to take apart, and run:
+   ```
+   npx rea-agents setup
+   ```
+3. Pick your agent (Claude Code or Codex), read the plan it shows, and approve it. Setup backs up your config, connects the REA MCP server, and installs the newest version of this skill.
+4. Restart the agent. Check it worked by asking: "Is REA connected? List its tools."
+5. Optional, for native apps (`.exe`, `.dll`, Mac apps, firmware): REA needs an analysis engine. It can use Ghidra (free), Hopper, IDA, or Kuna if you have one, and setup can offer to install Hopper. JavaScript, Electron and website analysis need no engine.
+
+Try it: "Understand how search works in the Notes app, show me the evidence, and build a similar feature for my project."
+
+To update later: `npx rea-agents@latest setup`, then restart the agent. More help: [installation guide](https://github.com/morluto/rea/blob/main/docs/getting-started/installation.md).
+
+Agents: run `npx rea-agents setup` only with the user's go-ahead, and let the user review and approve its plan themselves.
 
 ## What's inside
 
