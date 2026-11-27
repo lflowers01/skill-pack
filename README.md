@@ -4,6 +4,33 @@ A hand-picked set of agent skills for Claude Code and Codex. Each folder in `ski
 
 ## Install
 
+### Easiest: let your agent do it
+
+Paste this into Claude Code (or Codex):
+
+```
+Install the skills from https://github.com/lflowers01/skill-pack. Follow the "Instructions for agents" section in its README.
+```
+
+### Instructions for agents
+
+If a user asked you to install this skill pack, do this:
+
+1. Clone the public repo into a temporary folder: `git clone --depth 1 https://github.com/lflowers01/skill-pack`
+2. Pick the skills folder for the agent you are running in:
+   - Claude Code: `~/.claude/skills/` (Windows: `%USERPROFILE%\.claude\skills\`)
+   - Codex: `~/.codex/skills/`
+   Create it if it does not exist.
+3. Copy every folder inside the repo's `skills/` folder into that skills folder, so each skill ends up as `<skills folder>/<skill-name>/SKILL.md`. Copy the folders themselves, not the `skills/` folder around them.
+4. If a skill with the same name is already installed, ask the user before replacing it.
+5. Delete the temporary clone.
+6. Tell the user which skills were installed, and that they need to restart the agent (or start a new session) to load them.
+7. `reverse-engineer-anything` only works once the REA MCP server is installed (https://github.com/morluto/rea). Mention that, but do not install it unless the user asks.
+
+To update later, run the same steps again. The newest version is always at https://github.com/lflowers01/skill-pack.
+
+### By hand
+
 **Claude Code:** copy the folders you want into your skills folder.
 
 ```
